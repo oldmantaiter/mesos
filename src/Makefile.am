@@ -350,7 +350,7 @@ libprocess_la_SOURCES =        \
   libprocess/pid.cpp           \
   libprocess/process.cpp       \
   libprocess/synchronized.hpp   \
-  libprocess/timeseries.cpp     \
+  libprocess/timeseries.cpp
   
 libprocess_la_CPPFLAGS =       \
   -I$(top_srcdir)/include/mesos        \
