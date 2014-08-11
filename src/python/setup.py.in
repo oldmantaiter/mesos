@@ -61,25 +61,9 @@ EXTRA_OBJECTS = [
   '-lev',
 ]
 
-# For leveldb, we need to check for the presence of libleveldb.a, since
-# it is possible to disable leveldb inside mesos.
-libleveldb = os.path.join(abs_top_builddir, leveldb, 'libleveldb.a')
-libzookeeper = os.path.join(
-    abs_top_builddir, zookeeper, '.libs', 'libzookeeper_mt.a')
-
-if os.path.exists(libleveldb):
-  EXTRA_OBJECTS.append(libleveldb)
-else:
-  EXTRA_OBJECTS.append('-lleveldb')
-
-if os.path.exists(libzookeeper):
-  EXTRA_OBJECTS.append(libzookeeper)
-else:
-  EXTRA_OBJECTS.append('-lzookeeper_mt')
-
 # For gperftools, we need to check for the presence of libprofiler.a, since
 # it is possible to disable perftools inside libprocess.
-libprofiler = '-lprofiler
+libprofiler = '-lprofiler'
 
 if os.path.exists(libprofiler):
   EXTRA_OBJECTS.append(libprofiler)

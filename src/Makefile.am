@@ -346,9 +346,13 @@ libprocess_la_SOURCES =        \
   libprocess/decoder.hpp       \
   libprocess/encoder.hpp       \
   libprocess/gate.hpp          \
+  libprocess/http.cpp           \
   libprocess/latch.cpp         \
+  libprocess/metrics/metrics.cpp \
   libprocess/pid.cpp           \
   libprocess/process.cpp       \
+  libprocess/reap.cpp       \
+  libprocess/subprocess.cpp       \
   libprocess/synchronized.hpp   \
   libprocess/timeseries.cpp
   
@@ -809,29 +813,6 @@ EXTRA_DIST += python/src/mesos.py					\
 	      python/native/proxy_scheduler.cpp				\
 	      python/native/proxy_scheduler.hpp
 
-if HAS_PYTHON
-# Used for building Python eggs.
-DISTRIBUTE_EGG_SUFFIX = $(DISTRIBUTE_VERSION)$(PYTHON_EGG_PUREPY_POSTFIX).egg
-DISTRIBUTE_EGG = \
-  $(abs_top_builddir)/$(DISTRIBUTE)/dist/distribute-$(DISTRIBUTE_EGG_SUFFIX)
-
-# Build a protobuf Python egg.
-PROTOBUF_EGG_SUFFIX = $(PROTOBUF_VERSION)$(PYTHON_EGG_PUREPY_POSTFIX).egg
-PROTOBUF_EGG = ../$(PROTOBUF)/python/dist/protobuf-$(PROTOBUF_EGG_SUFFIX)
-
-$(PROTOBUF_EGG):
-	@echo "Building protobuf Python egg ..."
-	cd ../$(PROTOBUF)/python && \
-          CC="$(CC)" CXX="$(CXX)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" \
-	  PYTHONPATH=$(DISTRIBUTE_EGG) $(PYTHON) setup.py build bdist_egg
-
-CLEANFILES += $(PROTOBUF_EGG)
-
-# This builds a Python egg against libmesos_no_3rdparty.a that is
-# self-contained. It currently depends on the libraries in 3rdparty
-# being built as .a's. (If this is changed, the setup.py will need to
-# be edited).
-
 # TODO(Charles Reiss): Figure out how to do a proper out-of-source
 # build of these Python eggs. Right now we copy the entire source
 # directories into the build directory.
@@ -855,13 +836,12 @@ $(MESOS_EGG): python/setup.py $(srcdir)/python/src/mesos.py		\
 	@LIBS="$(LIBS)" CC="$(CC)" CXX="$(CXX)"				\
 	CFLAGS="$(PYTHON_CFLAGS)" CPPFLAGS="$(PYTHON_CPPFLAGS)"		\
 	LDFLAGS="$(PYTHON_LDFLAGS)"					\
-	PYTHONPATH=$(DISTRIBUTE_EGG) $(PYTHON) python/setup.py bdist_egg
+	$(PYTHON) python/setup.py bdist_egg
 
 CLEANFILES += $(MESOS_EGG) python/build/temp.*/native/*.o python/build/lib.*/*
 
 # Make sure the egg gets built via 'make all'.
 all-local: $(MESOS_EGG)
-endif # HAS_PYTHON
 
 # Note that to clean up the copied Python files we have to 'chmod u+w
 # python/native' because creating a distribution can eliminate write
