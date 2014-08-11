@@ -1,7 +1,7 @@
 #ifndef __ZOOKEEPER_AUTHENTICATION_HPP__
 #define __ZOOKEEPER_AUTHENTICATION_HPP__
 
-#include <zookeeper.h>
+#include <zookeeper/zookeeper.h>
 
 #include <string>
 

@@ -1,3 +1,5 @@
+WARNING: This branch is for test building mesos 0.19.1 with koji - probably not production ready
+
 # About Apache Mesos
 
 Apache Mesos is a cluster manager that provides efficient resource isolation 

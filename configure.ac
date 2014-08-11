@@ -75,12 +75,10 @@ ac_configure_args="$ac_configure_args_post"
 AC_CONFIG_COMMANDS_PRE([ac_configure_args="$ac_configure_args_pre"])
 AC_CONFIG_COMMANDS_POST([ac_configure_args="$ac_configure_args_post"])
 
-AC_CONFIG_SUBDIRS([3rdparty/libprocess])
-
 AC_CONFIG_FILES([Makefile mesos.pc])
 AC_CONFIG_FILES([ec2/Makefile])
 AC_CONFIG_FILES([src/Makefile])
-AC_CONFIG_FILES([3rdparty/Makefile])
+AC_CONFIG_FILES([include/Makefile])
 
 AC_CONFIG_FILES([bin/mesos.sh], [chmod +x bin/mesos.sh])
 AC_CONFIG_FILES([bin/mesos-local.sh], [chmod +x bin/mesos-local.sh])
@@ -189,7 +187,7 @@ AC_MSG_NOTICE([Setting up build environment for ${target_cpu} ${target_os}])
 case "${target_os}" in
   linux*)
     OS_NAME=linux
-    LIBS="$LIBS -lrt"
+    #LIBS="$LIBS -lrt"
     ;;
   darwin*)
     OS_NAME=darwin
@@ -777,6 +775,30 @@ if test "x$with_cxx11" = "xyes"; then
   # Also pass the flags to 3rdparty libraries.
   CONFIGURE_ARGS="$CONFIGURE_ARGS CXXFLAGS='$CXXFLAGS'"
 fi
+
+# Check for protobuf
+PKG_CHECK_MODULES([PROTOBUF], [protobuf], [], [AC_MSG_ERROR([protobuf library is missing])])
+
+# Check for protobuf - may want be more elaborate (compile check) or change --with
+AC_CHECK_HEADERS([google/protobuf/compiler/code_generator.h], [], [AC_MSG_ERROR([protobuf is missing])])
+
+# Check for boost
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([boost/foreach.hpp], [], [AC_MSG_ERROR(Boost libraries is missing)])
+AC_LANG_POP([C++])
+
+# Check for gtest
+AC_CHECK_HEADERS([gtest/gtest.h], [], [AC_MSG_ERROR([gtest library is missing])])
+
+# Check for glog
+PKG_CHECK_MODULES([GLOG], [libglog], [], [AC_MSG_ERROR([glog library is missing])])
+
+# Check for gmock
+AC_CHECK_FILE([/usr/src/gmock/gmock-all.cc], 
+              [AC_CONFIG_LINKS([src/gmock-all.cc:/usr/src/gmock/gmock-all.cc])], 
+              [AC_MSG_ERROR([gmock sources are missing])])
+
+AM_CONDITIONAL([HAS_GPERFTOOLS], [test "x$gperftools" = "xyes"])
 
 
 # TODO(benh): Also check for md5 support so we can use the CRAM-MD5

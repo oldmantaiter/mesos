@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-#include <jni.h>
-
 #include <string>
 #include <assert.h>
 

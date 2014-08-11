@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include <jni.h>
-
 #include <glog/logging.h>
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>

@@ -3,11 +3,10 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 
-DEPLOY_DIR=@localstatedir@/@PACKAGE@/deploy
+DEPLOY_DIR=@sysconfdir@/@PACKAGE@
 
 # Pull in deploy specific options.
-test -e ${DEPLOY_DIR}/mesos-deploy-env.sh && \
-  . ${DEPLOY_DIR}/mesos-deploy-env.sh
+test -e ${DEPLOY_DIR}/mesos-deploy-env && source ${DEPLOY_DIR}/mesos-deploy-env.sh
 
 # Find the list of slaves.
 SLAVES_FILE="${DEPLOY_DIR}/slaves"

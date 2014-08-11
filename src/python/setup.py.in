@@ -19,21 +19,6 @@ abs_top_builddir = '@abs_top_builddir@'
 src_python_dist = os.path.join('src', 'python', 'dist')
 src_python_native = os.path.join('src', 'python', 'native')
 
-leveldb = os.path.join('3rdparty', 'leveldb')
-zookeeper = os.path.join('3rdparty', 'zookeeper-3.4.5', 'src', 'c')
-libprocess = os.path.join('3rdparty', 'libprocess')
-
-# Even though a statically compiled libprocess should include glog,
-# libev, gperftools, and protobuf before installation this isn't the
-# case, so while a libtool managed build will correctly pull in these
-# libraries when building the final result, we need to explicitly
-# include them here (or more precisely, down where we actually include
-# libev.a and libprofiler.a).
-glog = os.path.join(libprocess, '3rdparty', 'glog-0.3.3')
-libev = os.path.join(libprocess, '3rdparty', 'libev-4.15')
-gperftools = os.path.join(libprocess, '3rdparty', 'gperftools-2.0')
-protobuf = os.path.join(libprocess, '3rdparty', 'protobuf-2.5.0')
-
 # We need to execute from the same directory as this script.
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
@@ -63,18 +48,17 @@ INCLUDE_DIRS = [
    os.path.join(abs_top_srcdir, 'include'),
    os.path.join(abs_top_builddir, 'include'),
    os.path.join(abs_top_builddir, 'src'),
-   os.path.join(abs_top_builddir, src_python_native),
-   os.path.join(abs_top_builddir, protobuf, 'src'),
+   os.path.join(abs_top_builddir, src_python_native)
 ]
 
 LIBRARY_DIRS = []
 
 EXTRA_OBJECTS = [
-  os.path.join(abs_top_builddir, 'src', '.libs', 'libmesos_no_3rdparty.a'),
-  os.path.join(abs_top_builddir, protobuf, 'src', '.libs', 'libprotobuf.a'),
-  os.path.join(abs_top_builddir, libprocess, '.libs', 'libprocess.a'),
-  os.path.join(abs_top_builddir, glog, '.libs', 'libglog.a'),
-  os.path.join(abs_top_builddir, libev, '.libs', 'libev.a'),
+  '-lprotobuf',
+  '-lleveldb',
+  '-lzookeeper_mt',
+  '-lglog',
+  '-lev',
 ]
 
 # For leveldb, we need to check for the presence of libleveldb.a, since
@@ -95,8 +79,7 @@ else:
 
 # For gperftools, we need to check for the presence of libprofiler.a, since
 # it is possible to disable perftools inside libprocess.
-libprofiler = os.path.join(
-    abs_top_builddir, gperftools, '.libs', 'libprofiler.a')
+libprofiler = '-lprofiler
 
 if os.path.exists(libprofiler):
   EXTRA_OBJECTS.append(libprofiler)

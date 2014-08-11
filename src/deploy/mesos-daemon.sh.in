@@ -3,7 +3,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 
-deploy_dir=@localstatedir@/@PACKAGE@/deploy
+deploy_dir=@sysconfdir@/@PACKAGE@
 
 # Increase the default number of open file descriptors.
 ulimit -n 8192
@@ -12,7 +12,6 @@ PROGRAM=${1}
 
 shift # Remove PROGRAM from the argument list (since we pass ${@} below).
 
-test -e ${deploy_dir}/${PROGRAM}-env.sh && \
-. ${deploy_dir}/${PROGRAM}-env.sh
+test -e ${deploy_dir}/${PROGRAM}-env && source ${deploy_dir}/${PROGRAM}-env.sh
 
 nohup @sbindir@/${PROGRAM} ${@} </dev/null >/dev/null 2>&1 &

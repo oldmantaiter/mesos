@@ -19,22 +19,22 @@
 # master/http.cpp and slave/http.cpp.
 AUTOMAKE_OPTIONS = subdir-objects
 
-include ../3rdparty/versions.am
-include ../3rdparty/libprocess/3rdparty/versions.am
-
-# TODO(charles): Move these into an included automakefile and have
-# them include $(top_builddir) as appropriate.
-DISTRIBUTE = 3rdparty/distribute-$(DISTRIBUTE_VERSION)
-LEVELDB = 3rdparty/leveldb
-ZOOKEEPER = 3rdparty/zookeeper-$(ZOOKEEPER_VERSION)/src/c
-ZOOKEEPER_JAR = 3rdparty/zookeeper-$(ZOOKEEPER_VERSION)/zookeeper-$(ZOOKEEPER_VERSION).jar
-LIBPROCESS = 3rdparty/libprocess
-STOUT = $(LIBPROCESS)/3rdparty/stout
-BOOST = $(LIBPROCESS)/3rdparty/boost-$(BOOST_VERSION)
-GLOG = $(LIBPROCESS)/3rdparty/glog-$(GLOG_VERSION)
-GMOCK = $(LIBPROCESS)/3rdparty/gmock-$(GMOCK_VERSION)
-GTEST = $(GMOCK)/gtest
-PROTOBUF = $(LIBPROCESS)/3rdparty/protobuf-$(PROTOBUF_VERSION)
+#include ../3rdparty/versions.am
+#include ../3rdparty/libprocess/3rdparty/versions.am
+#
+## TODO(charles): Move these into an included automakefile and have
+## them include $(top_builddir) as appropriate.
+#DISTRIBUTE = 3rdparty/distribute-$(DISTRIBUTE_VERSION)
+#LEVELDB = 3rdparty/leveldb
+#ZOOKEEPER = 3rdparty/zookeeper-$(ZOOKEEPER_VERSION)/src/c
+#ZOOKEEPER_JAR = 3rdparty/zookeeper-$(ZOOKEEPER_VERSION)/zookeeper-$(ZOOKEEPER_VERSION).jar
+#LIBPROCESS = 3rdparty/libprocess
+#STOUT = $(LIBPROCESS)/3rdparty/stout
+#BOOST = $(LIBPROCESS)/3rdparty/boost-$(BOOST_VERSION)
+#GLOG = $(LIBPROCESS)/3rdparty/glog-$(GLOG_VERSION)
+#GMOCK = $(LIBPROCESS)/3rdparty/gmock-$(GMOCK_VERSION)
+#GTEST = $(GMOCK)/gtest
+#PROTOBUF = $(LIBPROCESS)/3rdparty/protobuf-$(PROTOBUF_VERSION)
 PICOJSON = $(LIBPROCESS)/3rdparty/picojson-$(PICOJSON_VERSION)
 
 
@@ -42,10 +42,10 @@ PICOJSON = $(LIBPROCESS)/3rdparty/picojson-$(PICOJSON_VERSION)
 # before automake 1.11, so we need to set them manually (until we in
 # the future assume an automake version).
 pkglibexecdir = $(libexecdir)/$(PACKAGE)
-pkglocalstatedir = $(localstatedir)/$(PACKAGE)
+pkglocalstatedir = $(sysconfdir)/$(PACKAGE)
 
 # Protocol buffer compiler.
-PROTOC = ../$(PROTOBUF)/src/protoc
+PROTOC = protoc
 PROTOCFLAGS = -I$(top_srcdir)/include/mesos -I$(srcdir)
 
 # Initialize variables here so we can use += operator everywhere else.
@@ -78,13 +78,7 @@ MESOS_CPPFLAGS += -DLIBDIR=\"$(libdir)\"
 MESOS_CPPFLAGS += -DPKGLIBEXECDIR=\"$(pkglibexecdir)\"
 MESOS_CPPFLAGS += -DPKGDATADIR=\"$(pkgdatadir)\"
 MESOS_CPPFLAGS += -I$(top_srcdir)/include
-MESOS_CPPFLAGS += -I$(top_srcdir)/$(LIBPROCESS)/include
-MESOS_CPPFLAGS += -I$(top_srcdir)/$(STOUT)/include
-MESOS_CPPFLAGS += -I../include
-MESOS_CPPFLAGS += -I../$(BOOST)
-MESOS_CPPFLAGS += -I../$(PROTOBUF)/src
 MESOS_CPPFLAGS += -I../$(PICOJSON)
-MESOS_CPPFLAGS += -I../$(GLOG)/src
 
 if WITH_BUNDLED_LEVELDB
   MESOS_CPPFLAGS += -I../$(LEVELDB)/include
@@ -98,6 +92,8 @@ endif
 if WITH_NETWORK_ISOLATOR
   MESOS_CPPFLAGS += $(LIBNL_CFLAGS)
 endif
+
+MESOS_CPPFLAGS += -I$(top_srcdir)/include/mesos
 
 # README: we build the Mesos library out of a collection of
 # convenience libraries (that is, libraries that do not get installed
@@ -198,10 +194,10 @@ libmesos_no_3rdparty_la_SOURCES =					\
 	sched/sched.cpp							\
 	local/local.cpp							\
 	master/contender.cpp						\
-	master/constants.cpp						\
+	master/m_constants.cpp						\
 	master/detector.cpp						\
 	master/drf_sorter.cpp						\
-	master/http.cpp							\
+	master/m_http.cpp							\
 	master/master.cpp						\
 	master/registry.hpp						\
 	master/registry.proto                                           \
@@ -236,12 +232,6 @@ libmesos_no_3rdparty_la_SOURCES =					\
 	zookeeper/group.cpp						\
 	messages/messages.proto
 
-pkginclude_HEADERS =							\
-  $(top_srcdir)/include/mesos/executor.hpp				\
-  $(top_srcdir)/include/mesos/scheduler.hpp				\
-  $(top_srcdir)/include/mesos/resources.hpp				\
-  $(top_srcdir)/include/mesos/values.hpp				\
-  $(top_srcdir)/include/mesos/mesos.proto
 
 nodist_pkginclude_HEADERS =						\
   ../include/mesos/mesos.hpp						\
@@ -349,6 +339,38 @@ libmesos_no_3rdparty_la_CPPFLAGS = $(MESOS_CPPFLAGS)
 
 libmesos_no_3rdparty_la_LIBADD = # Initialized to enable using +=.
 
+noinst_LTLIBRARIES += libprocess.la
+
+libprocess_la_SOURCES =        \
+  libprocess/config.hpp        \
+  libprocess/decoder.hpp       \
+  libprocess/encoder.hpp       \
+  libprocess/gate.hpp          \
+  libprocess/latch.cpp         \
+  libprocess/pid.cpp           \
+  libprocess/process.cpp       \
+  libprocess/statistics.cpp        \
+  libprocess/synchronized.hpp
+  
+libprocess_la_CPPFLAGS =       \
+  -I$(top_srcdir)/include/mesos        \
+  -I$(top_srcdir)/src/libprocess   \
+  $(AM_CPPFLAGS)
+
+#
+# libprocess_la_LDFLAGS =          \
+#  -lglog              \
+#  -lhttp_parser               \
+#  -lev                    \
+#  -lz
+#
+
+# if HAS_GPERFTOOLS
+# libprocess_la_LDFLAGS += -lprofiler
+# endif
+
+libmesos_no_3rdparty_la_LIBADD += libprocess.la
+
 # Convenience library that *always* gets rebuilt to ensure accurate info.
 noinst_LTLIBRARIES += libbuild.la
 libbuild_la_SOURCES = common/build.cpp
@@ -455,7 +477,7 @@ lib_LTLIBRARIES += libmesos.la
 # Include as part of the distribution.
 libmesos_la_SOURCES = $(MESOS_PROTO) $(CONTAINERIZER_PROTO)
 
-libmesos_la_LDFLAGS = -release $(PACKAGE_VERSION) -shared
+libmesos_la_LDFLAGS = -version-info 0:0:0 -release $(PACKAGE_VERSION) -shared
 
 # Since we just include the convenience library (and no sources), we
 # need to tell libtool to build this as a C++ library.
@@ -463,12 +485,6 @@ libmesos_la_LIBTOOLFLAGS = --tag=CXX
 
 # Add the convenience library.
 libmesos_la_LIBADD = libmesos_no_3rdparty.la
-
-# For non-convenience libraries we need to link them in to make the shared
-# library each time. (Currently, we don't support platforms where this is not
-# possible.)
-libmesos_la_LIBADD += ../$(PROTOBUF)/src/libprotobuf.la
-libmesos_la_LIBADD += ../$(GLOG)/libglog.la
 
 if WITH_BUNDLED_LEVELDB
 # We need to directly include the leveldb library in order to avoid
@@ -486,7 +502,7 @@ else
   libmesos_la_LIBADD += -lzookeeper_mt
 endif
 
-libmesos_la_LIBADD += ../$(LIBPROCESS)/libprocess.la
+libmesos_la_LDFLAGS += -lprotobuf -lglog -lleveldb -lzookeeper_mt -lrt -lcurl -lhttp_parser -lev
 
 # Binaries.
 sbin_PROGRAMS += mesos-master
@@ -673,7 +689,7 @@ EXTRA_DIST += $(EXAMPLES_SOURCE)
 
 if HAS_JAVA
 # Protobuf jar, copied there by Maven.
-PROTOBUF_JAR = java/target/protobuf-java-$(PROTOBUF_VERSION).jar
+PROTOBUF_JAR =  /usr/share/java/protobuf.jar
 
 $(MESOS_JAR): $(MESOS_JAR_SOURCE) $(MESOS_JAR_GENERATED) java/mesos.pom
 	@echo "Building mesos-$(PACKAGE_VERSION).jar ..."
@@ -916,7 +932,34 @@ balloon_executor_SOURCES = examples/balloon_executor.cpp
 balloon_executor_CPPFLAGS = $(MESOS_CPPFLAGS)
 balloon_executor_LDADD = libmesos.la
 
-check_PROGRAMS += mesos-tests
+check_PROGRAMS += lptests mesos-tests
+
+lptests_SOURCES =                          \
+  libprocess/tests/decoder_tests.cpp                   \
+  libprocess/tests/encoder_tests.cpp                   \
+  libprocess/tests/http_tests.cpp                  \
+  libprocess/tests/io_tests.cpp                    \
+  libprocess/tests/main.cpp                        \
+  libprocess/tests/process_tests.cpp                   \
+  libprocess/tests/shared_tests.cpp                \
+  libprocess/tests/statistics_tests.cpp                \
+  libprocess/tests/time_tests.cpp                  \
+  gmock-all.cc
+
+lptests_CPPFLAGS =         \
+  -I$(top_srcdir)/include/mesos        \
+  -I$(top_srcdir)/src/libprocess   \
+  -I/usr/src/gmock         \
+  $(libprocess_la_CPPFLAGS)  
+
+lptests_LDADD =                \
+  -lpthread                \
+  libprocess.la                \
+  -lglog               \
+  -lgtest              \
+  -lhttp_parser                \
+  -lev                 \
+  -lz
 
 mesos_tests_SOURCES =				\
   tests/allocator_tests.cpp			\
@@ -957,15 +1000,16 @@ mesos_tests_SOURCES =				\
   tests/state_tests.cpp				\
   tests/status_update_manager_tests.cpp		\
   tests/utils.cpp				\
-  tests/zookeeper_url_tests.cpp
+  tests/zookeeper_url_tests.cpp    \
+  gmock-all.cc
 
 mesos_tests_CPPFLAGS = $(MESOS_CPPFLAGS)
 mesos_tests_CPPFLAGS += -DSOURCE_DIR=\"$(abs_top_srcdir)\"
 mesos_tests_CPPFLAGS += -DBUILD_DIR=\"$(abs_top_builddir)\"
 mesos_tests_CPPFLAGS += -I../$(GTEST)/include
-mesos_tests_CPPFLAGS += -I../$(GMOCK)/include
-
-mesos_tests_LDADD = ../$(LIBPROCESS)/3rdparty/libgmock.la libmesos.la
+mesos_tests_CPPFLAGS += -I/usr/src/gmock
+ 
+mesos_tests_LDADD = libmesos.la -lgtest -lsasl2
 
 mesos_tests_DEPENDENCIES = # Initialized to allow += below.
 
@@ -1032,8 +1076,8 @@ dist_check_SCRIPTS +=							\
 # runner that ships with newer versions of autotools.
 # See the following discussion for the workaround:
 # http://lists.gnu.org/archive/html/automake/2013-01/msg00051.html
-check-local: mesos-tests
-	./mesos-tests
+check-local: mesos-tests lptests
+	./lptests && ./mesos-tests
 
 clean-local: clean-java clean-python
 

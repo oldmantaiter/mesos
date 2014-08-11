@@ -26,7 +26,7 @@
 #ifndef ZOOKEEPER_HPP
 #define ZOOKEEPER_HPP
 
-#include <zookeeper.h>
+#include <zookeeper/zookeeper.h>
 
 #include <string>
 #include <vector>
