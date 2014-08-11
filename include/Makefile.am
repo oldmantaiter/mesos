@@ -10,6 +10,7 @@ mesos/process/gmock.hpp \
 mesos/process/io.hpp \
 mesos/process/clock.hpp \
 mesos/process/statistics.hpp \
+mesos/process/timeseries.hpp \
 mesos/process/timeout.hpp \
 mesos/process/id.hpp \
 mesos/process/tuples/tuples.hpp \

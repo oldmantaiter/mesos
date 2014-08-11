@@ -349,8 +349,8 @@ libprocess_la_SOURCES =        \
   libprocess/latch.cpp         \
   libprocess/pid.cpp           \
   libprocess/process.cpp       \
-  libprocess/statistics.cpp        \
-  libprocess/synchronized.hpp
+  libprocess/synchronized.hpp   \
+  libprocess/timeseries.cpp     \
   
 libprocess_la_CPPFLAGS =       \
   -I$(top_srcdir)/include/mesos        \
@@ -485,22 +485,6 @@ libmesos_la_LIBTOOLFLAGS = --tag=CXX
 
 # Add the convenience library.
 libmesos_la_LIBADD = libmesos_no_3rdparty.la
-
-if WITH_BUNDLED_LEVELDB
-# We need to directly include the leveldb library in order to avoid
-# the installed libmesos.la file to include leveldb in
-# 'dependency_libs' (via '-L../3rdparty/leveldb -lleveldb').
-
-  libmesos_la_LIBADD += ../$(LEVELDB)/libleveldb.a
-else
-  libmesos_la_LIBADD += -lleveldb
-endif
-
-if WITH_BUNDLED_ZOOKEEPER
-  libmesos_la_LIBADD += ../$(ZOOKEEPER)/libzookeeper_mt.la
-else
-  libmesos_la_LIBADD += -lzookeeper_mt
-endif
 
 libmesos_la_LDFLAGS += -lprotobuf -lglog -lleveldb -lzookeeper_mt -lrt -lcurl -lhttp_parser -lev
 
