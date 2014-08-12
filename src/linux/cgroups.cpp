@@ -455,9 +455,9 @@ Try<string> prepare(
       int systemdCpuCheck = attached.get().count("cpu") +
           attached.get().count("cpuacct");
       if (systemdCpuCheck != attachedSize) {
-          return Error("The " + subsystem + " subsystem is co-mounted at " +
+        return Error("The " + subsystem + " subsystem is co-mounted at " +
                    hierarchy + " with other subsytems");
-        }
+      }
     }
   } else {
     // Attempt to mount the hierarchy ourselves.
