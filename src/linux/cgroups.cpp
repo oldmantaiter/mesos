@@ -2117,6 +2117,101 @@ Try<Bytes> max_usage_in_bytes(const string& hierarchy, const string& cgroup)
 
   return Bytes::parse(strings::trim(read.get()) + "B");
 }
+ 
+
+namespace oom {
+
+namespace {
+
+Nothing _nothing() { return Nothing(); }
+
+} // namespace {
+
+Future<Nothing> listen(const string& hierarchy, const string& cgroup)
+{
+  return cgroups::listen(hierarchy, cgroup, "memory.oom_control")
+    .then(lambda::bind(&_nothing));
+}
+
+
+namespace killer {
+
+Try<bool> enabled(const string& hierarchy, const string& cgroup)
+{
+  Try<bool> exists = cgroups::exists(hierarchy, cgroup, "memory.oom_control");
+
+  if (exists.isError() || !exists.get()) {
+    return Error("Could not find 'memory.oom_control' control file: " +
+                 exists.error());
+  }
+
+  Try<string> read = cgroups::read(hierarchy, cgroup, "memory.oom_control");
+
+  if (read.isError()) {
+    return Error("Could not read 'memory.oom_control' control file: " +
+                 read.error());
+  }
+
+  map<string, vector<string> > pairs = strings::pairs(read.get(), "\n", " ");
+
+  if (pairs.count("oom_kill_disable") != 1 ||
+      pairs["oom_kill_disable"].size() != 1) {
+    return Error("Could not determine oom control state");
+  }
+
+  // Enabled if not disabled.
+  if (pairs["oom_kill_disable"].front() == "0") {
+    return true;
+  }
+
+  return false;
+}
+
+
+Try<Nothing> enable(const string& hierarchy, const string& cgroup)
+{
+  Try<bool> enabled = killer::enabled(hierarchy, cgroup);
+
+  if (enabled.isError()) {
+    return Error(enabled.error());
+  }
+
+  if (!enabled.get()) {
+    Try<Nothing> write = cgroups::write(
+        hierarchy, cgroup, "memory.oom_control", "0");
+
+    if (write.isError()) {
+      return Error(write.error());
+    }
+  }
+
+  return Nothing();
+}
+
+
+Try<Nothing> disable(const string& hierarchy, const string& cgroup)
+{
+  Try<bool> enabled = killer::enabled(hierarchy, cgroup);
+
+  if (enabled.isError()) {
+    return Error(enabled.error());
+  }
+
+  if (enabled.get()) {
+    Try<Nothing> write = cgroups::write(
+        hierarchy, cgroup, "memory.oom_control", "1");
+
+    if (write.isError()) {
+      return Error(write.error());
+    }
+  }
+
+  return Nothing();
+}
+
+} // namespace killer {
+
+} // namespace oom {
 
 } // namespace memory {
 
