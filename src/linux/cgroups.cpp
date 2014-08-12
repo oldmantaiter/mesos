@@ -449,9 +449,15 @@ Try<string> prepare(
                    subsystem + "' subsystem attached");
     }
 
-    if (attached.get().size() > 1) {
-      return Error("The " + subsystem + " subsystem is co-mounted at " +
+    int attachedSize = attached.get().size();
+    if (attachedSize > 1) {
+      // Check systemd exception for co-mounting cpu and cpuacct.
+      int systemdCpuCheck = attached.get().count("cpu") +
+          attached.get().count("cpuacct");
+      if (systemdCpuCheck != attachedSize) {
+          return Error("The " + subsystem + " subsystem is co-mounted at " +
                    hierarchy + " with other subsytems");
+        }
     }
   } else {
     // Attempt to mount the hierarchy ourselves.

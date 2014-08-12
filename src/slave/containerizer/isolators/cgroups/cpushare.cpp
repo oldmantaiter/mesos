@@ -228,13 +228,9 @@ Future<Option<CommandInfo> > CgroupsCpushareIsolatorProcess::prepare(
 
   if (exists.isError()) {
     return Failure("Failed to prepare isolator: " + exists.error());
-  }
-
-  if (exists.get()) {
-    return Failure("Failed to prepare isolator: cgroup already exists");
-  }
-
-  if (!exists.get()) {
+  } else if (exists.get()) {
+    LOG(INFO) << "cpu isolator: using existing cpu cgroup";
+  } else {
     Try<Nothing> create = cgroups::create(hierarchies["cpu"], info->cgroup);
     if (create.isError()) {
       return Failure("Failed to prepare isolator: " + create.error());
@@ -246,13 +242,9 @@ Future<Option<CommandInfo> > CgroupsCpushareIsolatorProcess::prepare(
 
   if (exists.isError()) {
     return Failure("Failed to prepare isolator: " + exists.error());
-  }
-
-  if (exists.get()) {
-    return Failure("Failed to prepare isolator: cgroup already exists");
-  }
-
-  if (!exists.get()) {
+  } else if (exists.get()) {
+    LOG(INFO) << "cpu isolator: using existing cpuacct cgroup";
+  } else {
     Try<Nothing> create = cgroups::create(hierarchies["cpuacct"], info->cgroup);
     if (create.isError()) {
       return Failure("Failed to prepare isolator: " + create.error());
